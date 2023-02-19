@@ -5,76 +5,98 @@ using UnityEngine;
 public class RandomWalkMazeGenerator : MonoBehaviour
 {
     [Header("How much steps we want in dungeon?")]
-    public int stepsMax;
-    private int steps = 1; //0 is for start!
+    [SerializeField] int maximumSteps; 
+    [Header("Empty object that will place ground tiles")]
+    [SerializeField] GameObject walkingDead;
+    [Header("Test tilesets")]
+    [SerializeField] GameObject groundTiles;
+    [Header("How many enemies we want in our dungeon?")]
+    [SerializeField] int maximumEnemiesAmount;   
+    [Header("Enemies List")]
+    [SerializeField] GameObject[] enemiesList;
+    [Header("Merchant, doctor, etc...")]
+    [SerializeField] GameObject merchant;
+    [SerializeField] GameObject doctor;
 
-    [Header("Empty object that will place gtround tiles")]
-    public GameObject walkingDead;
+    //Values that are used for iteration in recursion 
+    private int groundStepsCurrentAmount = 1; //0 is for start!
+    private int enemiesCurrentAmount = 0;
 
-    [Header("Test tileset")]
-    public GameObject test;
-    public GameObject wall;
+    // Constant directions
+     private const int UP_DIRECTION = 0;
+    private const int DOWN_DIRECTION = 1;
+    private const int RIGHT_DIRECTION = 2;
+    private const int LEFT_DIRECTION = 3;
 
+    //Constant chances for merchant and doctor spawn - lower means more possible
+    private const float MERCHANT_CHANCE = 90;
+    private const float DOCTOR_CHANCE = 80;
+
+    //First and last ground tiles:
     private GameObject first, last;
-    private GameObject[] tiles;
-    private List<Vector3> visitedPlaces;
-
-    
+    //List of ground tiles:
+    private GameObject[] tilesOfGround;
+    //Lists of Vector3 positions - for ground tales and enemy
+    private List<Vector3> visitedPostions;
+    private List<Vector3> entityPositions;
 
     private void Start()
     {
-        visitedPlaces = new List<Vector3>();
-        tiles = new GameObject[stepsMax];
-        first = Instantiate(test, walkingDead.transform.position, Quaternion.identity);
-        first.GetComponent<SpriteRenderer>().color = Color.green;
 
-        for (int i = 0; i < tiles.Length; i++)
-        {
-            tiles[i] = first;
-        }
+        StartingSetUp();
         
-        Walking();
+        WalkToGenerateGround();
+        GenerateEnemies(enemiesList);
 
-
+        int rand = Random.Range(0,101);
+        if (rand >= MERCHANT_CHANCE)
+        {
+            GenerateEntities(merchant);
+        }
+        if (rand >= DOCTOR_CHANCE)
+        {
+            GenerateEntities(doctor);
+        }
     }
 
+    private void StartingSetUp()
+    {
+        //Initialization for lists and collections
+        visitedPostions = new List<Vector3>();
+        entityPositions = new List<Vector3>();
+        entityPositions.Add(new Vector3(0, 0, 0));
+        tilesOfGround = new GameObject[maximumSteps];
 
+        //Instantiate first ground tile - inital one
+        first = Instantiate(groundTiles, walkingDead.transform.position, Quaternion.identity);
+        first.GetComponent<SpriteRenderer>().color = Color.green;
 
-    public void  Walking()
+        for (int i = 0; i < tilesOfGround.Length; i++)
+        {
+            tilesOfGround[i] = first;
+        }
+    }
+
+    public void  WalkToGenerateGround()
     {
         //Add  current pos as visited
-        visitedPlaces.Add(walkingDead.transform.position);
+        visitedPostions.Add(walkingDead.transform.position);
 
-         //Move one step
-        int rand = Random.Range(0,4);
-        Vector3 whereToGo = new Vector3(0, 0, 0); //Where walker should go?
-
-        switch (rand)
+        //Move one step
+        int rand = Random.Range(0, 4);
+        Vector3 whereToGo = rand switch
         {
-            case 0: //Move up
-                whereToGo.x = 0;
-                whereToGo.y = 1;
-                break;
-            case 1: //Move down
-                whereToGo.x = 0;
-                whereToGo.y = -1;
-                break;
-            case 2: //Move right
-                whereToGo.x = 1;
-                whereToGo.y = 0;
-                break;
-            case 3: //Move left
-                whereToGo.x = -1;
-                whereToGo.y = 0;
-                break;
-            default:
-                break;
-        }
+            UP_DIRECTION => new Vector3(0, 1, 0),  // Move up
+            DOWN_DIRECTION => new Vector3(0, -1, 0), // Move down
+            RIGHT_DIRECTION => new Vector3(1, 0, 0),  // Move right
+            LEFT_DIRECTION => new Vector3(-1, 0, 0), // Move left
+            _ => new Vector3(0, 0, 0),  // Invalid direction
+        };
 
         bool isThatNewPosition = true;
         Vector3 theoriticalPlace = walkingDead.transform.position + whereToGo;
 
-        foreach (var point in visitedPlaces)
+        foreach (var point in visitedPostions)
         {
             if (point == theoriticalPlace)
             {
@@ -88,34 +110,108 @@ public class RandomWalkMazeGenerator : MonoBehaviour
             walkingDead.transform.position += whereToGo;
 
             //Place new ground
-            GameObject nextOne = Instantiate(test, walkingDead.transform.position, Quaternion.identity);
+            GameObject nextOne = Instantiate(groundTiles, walkingDead.transform.position, Quaternion.identity);
 
             //It will be a fine addition to my collection!
-            tiles[steps] = nextOne;
+            tilesOfGround[groundStepsCurrentAmount] = nextOne;
 
             //You made another step, I'm so proud
-            steps++;
+            groundStepsCurrentAmount++;
 
             //Test if you should go next or stop
-            if (steps == stepsMax)
+            if (groundStepsCurrentAmount == maximumSteps)
             {
                 last = nextOne;
                 last.GetComponent<SpriteRenderer>().color = Color.red;
             }
             else
             {
-                Walking();
+                WalkToGenerateGround();
 
             }
         }
         else
         {
-            Walking();
-        }
-
-        
+            WalkToGenerateGround();
+        }       
     }
 
-    
+    public void GenerateEnemies(GameObject[] enemiesTable)
+    {
+        bool enemyIsHere = false;
 
+        //Pick random enemy
+        int rand = Random.Range(0, enemiesTable.Length);
+        GameObject enemyOfChoise = enemiesTable[rand];
+
+        //Pick place for enemy
+        int secrand = Random.Range(1, visitedPostions.Count - 1); //First and last are special places
+        Vector3 positionForEnemy = visitedPostions[secrand];
+        
+
+        //Check if there is enemy already here?
+        foreach (Vector3 ePos in entityPositions)
+        {
+            if (ePos == positionForEnemy)
+            {
+                enemyIsHere = true;
+            }
+        }
+
+        if (!enemyIsHere)
+        {
+            //Add this position to list
+            entityPositions.Add(positionForEnemy);
+            //Place this enemy
+            Instantiate(enemyOfChoise, positionForEnemy, Quaternion.identity);
+
+            //We add new enemy!
+            enemiesCurrentAmount++;
+
+            if (enemiesCurrentAmount == maximumEnemiesAmount)
+            {
+                Debug.Log("Enemies goes Brrrrrrrrrrrrrrrrr");
+            }
+            else
+            {
+                GenerateEnemies(enemiesTable);
+            }
+        }
+        else
+        {
+            GenerateEnemies(enemiesTable);
+        }      
+    }
+
+    public void GenerateEntities(GameObject spawnMe)
+    {
+        bool isThereSomebody = false;
+
+        //Choose random position
+        int rand = Random.Range(1, visitedPostions.Count - 1); //First and last are special places
+        Vector3 entityPos = visitedPostions[rand];
+
+        //Check if there is enemy already here?
+        foreach (Vector3 ePos in entityPositions)
+        {
+            if (ePos == entityPos)
+            {
+                isThereSomebody = true;
+            }
+        }
+
+        if (!isThereSomebody)
+        {
+
+            //Add this position to list
+            entityPositions.Add(entityPos);
+            //Place this enemy
+            Instantiate(spawnMe, entityPos, Quaternion.identity);
+        }
+        else
+        {
+            GenerateEntities(spawnMe);
+        }
+
+    }
 }
