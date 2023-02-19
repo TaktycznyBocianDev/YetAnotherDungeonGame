@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class RandomWalkMazeGenerator : MonoBehaviour
 {
+    [Header("Player in order to make it active in time")]
+    [SerializeField] GameObject player;
     [Header("How much steps we want in dungeon?")]
     [SerializeField] int maximumSteps; 
     [Header("Empty object that will place ground tiles")]
@@ -23,7 +25,7 @@ public class RandomWalkMazeGenerator : MonoBehaviour
     private int enemiesCurrentAmount = 0;
 
     // Constant directions
-     private const int UP_DIRECTION = 0;
+    private const int UP_DIRECTION = 0;
     private const int DOWN_DIRECTION = 1;
     private const int RIGHT_DIRECTION = 2;
     private const int LEFT_DIRECTION = 3;
@@ -42,12 +44,9 @@ public class RandomWalkMazeGenerator : MonoBehaviour
 
     private void Start()
     {
-
-        StartingSetUp();
-        
+        StartingSetUp();      
         WalkToGenerateGround();
         GenerateEnemies(enemiesList);
-
         int rand = Random.Range(0,101);
         if (rand >= MERCHANT_CHANCE)
         {
@@ -57,6 +56,8 @@ public class RandomWalkMazeGenerator : MonoBehaviour
         {
             GenerateEntities(doctor);
         }
+        MakePlayerReady(player);
+       
     }
 
     private void StartingSetUp()
@@ -79,108 +80,94 @@ public class RandomWalkMazeGenerator : MonoBehaviour
 
     public void  WalkToGenerateGround()
     {
-        //Add  current pos as visited
-        visitedPostions.Add(walkingDead.transform.position);
-
-        //Move one step
-        int rand = Random.Range(0, 4);
-        Vector3 whereToGo = rand switch
+        while (groundStepsCurrentAmount < maximumSteps)
         {
-            UP_DIRECTION => new Vector3(0, 1, 0),  // Move up
-            DOWN_DIRECTION => new Vector3(0, -1, 0), // Move down
-            RIGHT_DIRECTION => new Vector3(1, 0, 0),  // Move right
-            LEFT_DIRECTION => new Vector3(-1, 0, 0), // Move left
-            _ => new Vector3(0, 0, 0),  // Invalid direction
-        };
+            //Add  current pos as visited
+            visitedPostions.Add(walkingDead.transform.position);
 
-        bool isThatNewPosition = true;
-        Vector3 theoriticalPlace = walkingDead.transform.position + whereToGo;
-
-        foreach (var point in visitedPostions)
-        {
-            if (point == theoriticalPlace)
+            //Move one step
+            int rand = Random.Range(0, 4);
+            Vector3 whereToGo = rand switch
             {
-                isThatNewPosition = false;
+                UP_DIRECTION => new Vector3(0, 1, 0),  // Move up
+                DOWN_DIRECTION => new Vector3(0, -1, 0), // Move down
+                RIGHT_DIRECTION => new Vector3(1, 0, 0),  // Move right
+                LEFT_DIRECTION => new Vector3(-1, 0, 0), // Move left
+                _ => new Vector3(0, 0, 0),  // Invalid direction
+            };
+
+            bool isThatNewPosition = true;
+            Vector3 theoriticalPlace = walkingDead.transform.position + whereToGo;
+
+            for (int i = 0; i < visitedPostions.Count; i++)
+            {
+                if (visitedPostions[i] == theoriticalPlace)
+                {
+                    isThatNewPosition = false;
+                }
+            }
+
+            if (isThatNewPosition)
+            {
+                walkingDead.transform.position += whereToGo;
+
+                //Place new ground
+                GameObject nextOne = Instantiate(groundTiles, walkingDead.transform.position, Quaternion.identity);
+
+                //It will be a fine addition to my collection!
+                tilesOfGround[groundStepsCurrentAmount] = nextOne;
+
+                //You made another step, I'm so proud
+                groundStepsCurrentAmount++;
+
+                //Test if you should go next or stop
+                if (groundStepsCurrentAmount == maximumSteps)
+                {
+                    visitedPostions.Add(walkingDead.transform.position);
+                    last = nextOne;
+                    last.GetComponent<SpriteRenderer>().color = Color.red;
+                }
             }
         }
-      
-
-        if (isThatNewPosition)
-        {
-            walkingDead.transform.position += whereToGo;
-
-            //Place new ground
-            GameObject nextOne = Instantiate(groundTiles, walkingDead.transform.position, Quaternion.identity);
-
-            //It will be a fine addition to my collection!
-            tilesOfGround[groundStepsCurrentAmount] = nextOne;
-
-            //You made another step, I'm so proud
-            groundStepsCurrentAmount++;
-
-            //Test if you should go next or stop
-            if (groundStepsCurrentAmount == maximumSteps)
-            {
-                last = nextOne;
-                last.GetComponent<SpriteRenderer>().color = Color.red;
-            }
-            else
-            {
-                WalkToGenerateGround();
-
-            }
-        }
-        else
-        {
-            WalkToGenerateGround();
-        }       
     }
 
     public void GenerateEnemies(GameObject[] enemiesTable)
     {
         bool enemyIsHere = false;
 
-        //Pick random enemy
-        int rand = Random.Range(0, enemiesTable.Length);
-        GameObject enemyOfChoise = enemiesTable[rand];
-
-        //Pick place for enemy
-        int secrand = Random.Range(1, visitedPostions.Count - 1); //First and last are special places
-        Vector3 positionForEnemy = visitedPostions[secrand];
-        
-
-        //Check if there is enemy already here?
-        foreach (Vector3 ePos in entityPositions)
+        while (enemiesCurrentAmount < maximumEnemiesAmount)
         {
-            if (ePos == positionForEnemy)
+            enemyIsHere = false;
+
+            //Pick random enemy
+            int rand = Random.Range(0, enemiesTable.Length);
+            GameObject enemyOfChoise = enemiesTable[rand];
+
+            //Pick place for enemy
+            int secrand = Random.Range(1, visitedPostions.Count - 1); //First and last are special places
+            Vector3 positionForEnemy = visitedPostions[secrand];
+
+            enemyIsHere = entityPositions.Contains(positionForEnemy);
+
+            if (!enemyIsHere)
             {
-                enemyIsHere = true;
+                //Add this position to list
+                entityPositions.Add(positionForEnemy);
+                //Place this enemy
+                Instantiate(enemyOfChoise, positionForEnemy, Quaternion.identity);
+
+                //We add new enemy!
+                enemiesCurrentAmount++;
+
+                if (enemiesCurrentAmount == maximumEnemiesAmount)
+                {
+                    Debug.Log("Enemies goes Brrrrrrrrrrrrrrrrr");
+                }
+
             }
         }
 
-        if (!enemyIsHere)
-        {
-            //Add this position to list
-            entityPositions.Add(positionForEnemy);
-            //Place this enemy
-            Instantiate(enemyOfChoise, positionForEnemy, Quaternion.identity);
-
-            //We add new enemy!
-            enemiesCurrentAmount++;
-
-            if (enemiesCurrentAmount == maximumEnemiesAmount)
-            {
-                Debug.Log("Enemies goes Brrrrrrrrrrrrrrrrr");
-            }
-            else
-            {
-                GenerateEnemies(enemiesTable);
-            }
-        }
-        else
-        {
-            GenerateEnemies(enemiesTable);
-        }      
+              
     }
 
     public void GenerateEntities(GameObject spawnMe)
@@ -213,5 +200,11 @@ public class RandomWalkMazeGenerator : MonoBehaviour
             GenerateEntities(spawnMe);
         }
 
+    }
+
+    private void MakePlayerReady(GameObject player)
+    {
+        player.SetActive(true);
+        player.GetComponent<PlayerWalking>().SetGroundPosition(visitedPostions);
     }
 }

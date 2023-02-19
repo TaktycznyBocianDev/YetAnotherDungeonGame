@@ -217,13 +217,14 @@ GameObject:
   m_Component:
   - component: {fileID: 134421149}
   - component: {fileID: 134421148}
+  - component: {fileID: 134421150}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &134421148
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -291,6 +292,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &134421150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 134421147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12f2f8a962ddd5248af60dbf47f2c709, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -486,10 +499,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8affeb3f1627c747b42aae9a4958a50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maximumSteps: 20
+  player: {fileID: 134421147}
+  maximumSteps: 11
   walkingDead: {fileID: 793071127}
   groundTiles: {fileID: 3457056417729660101, guid: b358211e8563ee74eac23a8aa1a9d4a9, type: 3}
-  maximumEnemiesAmount: 5
+  maximumEnemiesAmount: 4
   enemiesList:
   - {fileID: 9136562295460531201, guid: dbfda042060a8814e893db737b6547e1, type: 3}
   - {fileID: 3717300567724522040, guid: 09babff9ebca1de4b913f89311c291ca, type: 3}
@@ -542,7 +556,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.6641791, y: 1}
+    m_SensorSize: {x: 1.7425373, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
