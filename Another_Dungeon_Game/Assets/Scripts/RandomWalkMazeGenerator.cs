@@ -143,8 +143,8 @@ public class RandomWalkMazeGenerator : MonoBehaviour
             int rand = Random.Range(0, enemiesTable.Length);
             GameObject enemyOfChoise = enemiesTable[rand];
 
-            //Pick place for enemy
-            int secrand = Random.Range(1, visitedPostions.Count - 1); //First and last are special places
+            //Pick place for enemy, left first 3 places without monsters
+            int secrand = Random.Range(4, visitedPostions.Count - 1); //First and last are special places
             Vector3 positionForEnemy = visitedPostions[secrand];
 
             enemyIsHere = entityPositions.Contains(positionForEnemy);
