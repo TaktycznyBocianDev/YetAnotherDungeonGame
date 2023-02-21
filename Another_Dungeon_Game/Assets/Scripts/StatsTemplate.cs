@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [CreateAssetMenu(fileName = "StatsSet", menuName = "Stats/StatsSet", order = 1)]
 public class StatsTemplate : ScriptableObject
@@ -23,6 +24,6 @@ public class StatsTemplate : ScriptableObject
     [Header("For player - take from armor")]
     public int armor;
 
-
+    public Sprite face;
 
 }

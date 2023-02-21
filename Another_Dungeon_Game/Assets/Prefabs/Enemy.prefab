@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6247794501109036623}
   - component: {fileID: 4535073558146680199}
+  - component: {fileID: 3689549633867646216}
   - component: {fileID: 1385126186418258391}
   m_Layer: 0
   m_Name: Enemy
@@ -85,6 +86,19 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &3689549633867646216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9136562295460531201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f30ff0ed6c9d92c40825296c8465972b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stats: {fileID: 11400000, guid: 6aae853f50388e64081b05b9ec039c93, type: 2}
 --- !u!58 &1385126186418258391
 CircleCollider2D:
   m_ObjectHideFlags: 0
